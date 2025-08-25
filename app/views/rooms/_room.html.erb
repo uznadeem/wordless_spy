@@ -3,7 +3,7 @@
     <strong><%= link_to room.name, room, data: { turbo_prefetch: false } %></strong>
     - <%= room.user.email %>
     - Players: <span data-room-count-id="<%= room.id %>">
-      <%= room.current_game&.players_hash&.values&.compact&.size || 0 %>/6
+      <%= room.current_game&.players_hash&.values&.map{ |h| h[0] }&.compact&.size || 0 %>/6
     </span>
   </p>
 </div>

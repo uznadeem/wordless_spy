@@ -6,7 +6,7 @@ class CreateGames < ActiveRecord::Migration[8.0]
       t.string :villagers_word
 
       t.string :words_list, array: true, default: []
-      t.jsonb :players_hash, default: { 1 => nil, 2 => nil, 3 => nil, 4 => nil, 5 => nil, 6 => nil }
+      t.jsonb :players_hash, default: { 1 => [ nil, "alive" ], 2 => [ nil, "alive" ], 3 => [ nil, "alive" ], 4 => [ nil, "alive" ], 5 => [ nil, "alive" ], 6 => [ nil, "alive" ] }
 
       t.integer :status, null: false, default: 0
       t.integer :result

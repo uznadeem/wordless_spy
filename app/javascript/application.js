@@ -20,7 +20,7 @@ $(document).on("turbo:load", function () {
 
   window.roomSubscription = subscribeToRoom(roomId);
 
-  const $el = $("#game-data");
+  const $el = $("#game-owner");
   if ($el.length === 0) return;
 
   window.gameData = {

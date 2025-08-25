@@ -8,6 +8,12 @@ $empty-color: #dc3545;
 $occupied-shadow: rgba(40, 167, 69, 0.3);
 $empty-shadow: rgba(220, 53, 69, 0.3);
 
+// Additional colors for killed/alive states
+$killed-color: #6c757d;
+$killed-shadow: rgba(108, 117, 125, 0.3);
+$alive-color: #28a745;
+$alive-shadow: rgba(40, 167, 69, 0.3);
+
 $circle-size: 20px;
 $card-border-radius: 15px;
 $card-padding: 1.5rem;
@@ -80,6 +86,16 @@ $transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   }
   
+  // Style for killed players
+  &.killed-player {
+    opacity: 0.6;
+    
+    &:hover {
+      transform: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+  }
+  
   @media (max-width: $mobile-breakpoint) {
     padding: 0.75rem 1rem;
   }
@@ -113,6 +129,39 @@ $transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       }
     }
     
+    // Specific style for alive players
+    &.alive {
+      background-color: $alive-color;
+      box-shadow: 0 0 10px $alive-shadow;
+      
+      &::after {
+        content: '';
+        display: block;
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        margin: 6px auto;
+      }
+    }
+    
+    // Style for killed players
+    &.killed {
+      background-color: $killed-color;
+      box-shadow: 0 0 10px $killed-shadow;
+      
+      &::after {
+        content: '💀';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        font-size: 12px;
+        margin: 0;
+      }
+    }
+    
     &.empty {
       background-color: $empty-color;
       box-shadow: 0 0 10px $empty-shadow;
@@ -135,6 +184,12 @@ $transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     overflow: hidden;
     text-overflow: ellipsis;
     
+    // Style for killed player names
+    &.killed-text {
+      color: #6c757d !important;
+      text-decoration: line-through;
+    }
+    
     @media (max-width: $mobile-breakpoint) {
       font-size: 0.85rem;
     }
@@ -144,6 +199,31 @@ $transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     color: #6c757d;
     font-size: 0.75rem;
     margin-top: 2px;
+  }
+}
+
+// Status indicators
+.killed-indicator {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 0.7rem;
+  margin-left: 8px;
+}
+
+.alive-indicator {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 0.7rem;
+  margin-left: 8px;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .killed-indicator,
+  .alive-indicator {
+    display: block;
+    margin-left: 0;
+    margin-top: 2px;
+    font-size: 0.65rem;
   }
 }
 
@@ -246,4 +326,37 @@ $transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.knife-btn {
+  border: none;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .knife-icon {
+    font-size: 20px;
+    color: #dc3545;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #a71e2a;
+    }
+  }
+}
+
+.knife-action {
+  margin-left: 10px;
+  display: inline-block;
 }
