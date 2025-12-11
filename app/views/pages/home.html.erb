@@ -1,1 +1,16 @@
-<h1>This is homepage</h1>
+<h1 class="ad-title">Wordless Spy</h1>
+
+<div id="rooms_list">
+<h2 class="join-rooms-heading">Join Our Rooms</h2>
+  <% @rooms.each do |room| %>
+    <div class="room-card" id="room_<%= room.id %>">
+      <strong class="room-name">
+        <%= link_to room.name, room, data: { turbo_prefetch: false } %>
+      </strong>
+      <p class="room-info">
+        Status: <span class="room-status"><%= room.current_game&.status || "waiting" %></span> |
+        Players: <span class="room-players"><%= room.current_game&.players_hash&.values&.map{ |h| h[0] }&.compact&.size || 0 %>/6</span>
+      </p>
+    </div>
+  <% end %>
+</div>
