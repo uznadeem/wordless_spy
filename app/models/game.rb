@@ -16,8 +16,8 @@ class Game < ApplicationRecord
   enum :result, { spy_won: 0, spy_lost: 1 }
 
   def join_game(player)
-    return errors.add(:base, "You are already in this room.") && false if players_hash.value?([ player, "alive" ])
-
+    return true if players_hash.values.any? { |id, _| id == player }
+  
     slot = players_hash.key([ nil, "alive" ])
     return errors.add(:base, "The room is full. You cannot join.") && false unless slot
 
