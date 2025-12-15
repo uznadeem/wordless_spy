@@ -13,18 +13,18 @@ $(function () {
 window.roomSubscription = null;
 
 $(document).on("turbo:load", function () {
-  const $roomElement = $("#room-id");
-  if ($roomElement.length === 0) return; // no room on this page
+  const $roomElements = $("[data-room-id]");
+  if ($roomElements.length === 0) return; // no rooms on this page
 
-  const roomId = $roomElement.data("room-id");
+  // Ensure we have a global object to store subscriptions
+  if (!window.roomSubscriptions) window.roomSubscriptions = {};
 
-  window.roomSubscription = subscribeToRoom(roomId);
-
-  const $el = $("#game-owner");
-  if ($el.length === 0) return;
-
-  window.gameData = {
-    currentUserId: $el.data("current-user-id") || null
-  };
+  // Subscribe to each room
+  $roomElements.each(function () {
+    const roomId = $(this).data("room-id"); // get the room id
+    if (!window.roomSubscriptions[roomId]) { // prevent duplicate subscription
+      window.roomSubscriptions[roomId] = subscribeToRoom(roomId);
+    }
+  });
 });
 

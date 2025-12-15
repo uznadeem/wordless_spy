@@ -73,3 +73,5 @@ gem "pg", "~> 1.6"
 gem "redis", "~> 5.4"
 
 gem "ruby-openai"
+
+gem "acts_as_paranoid", "~> 0.11.0"
