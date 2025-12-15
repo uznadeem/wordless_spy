@@ -9,7 +9,7 @@ class Game < ApplicationRecord
   after_save :start_new_game, if: :finished?
 
   has_one :spy, class_name: "User"
-
+  
   belongs_to :room
 
   enum :status, { room_assigned: 0, started: 1, finished: 2 }
