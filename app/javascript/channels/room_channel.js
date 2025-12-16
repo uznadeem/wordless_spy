@@ -34,7 +34,9 @@ function renderStartButton({ owner_id, game_id }) {
 function showGameModal({ spy_id, villagers_word, category }) {
   const isSpy = getCurrentUserId() && spy_id && getCurrentUserId() == spy_id;
   const wordToShow = isSpy ? "---" : villagers_word;
-
+  const $roomElement = $("#room-id");
+  const roomId = $roomElement.data("room-id");
+  if (window.location.pathname !== `/rooms/${roomId}`) return;
   const modalHtml = `
     <div id="game-start-modal" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
@@ -141,6 +143,9 @@ function showSpyModal({spy_id, words_list, game_id}) {
 }
 
 function showGameResult({ villagers_word, result }) {
+   const $roomElement = $("#room-id");
+  const roomId = $roomElement.data("room-id");
+  if (window.location.pathname !== `/rooms/${roomId}`) return;
   const resultText = result === "spy_won" 
     ? "The Spy has WON!" 
     : "The Villagers have WON!";
