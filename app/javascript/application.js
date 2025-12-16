@@ -26,5 +26,11 @@ $(document).on("turbo:load", function () {
       window.roomSubscriptions[roomId] = subscribeToRoom(roomId);
     }
   });
+  const $el = $("#game-owner");
+  if ($el.length === 0) return;
+
+  window.gameData = {
+    currentUserId: $el.data("current-user-id") || null
+  };
 });
 
