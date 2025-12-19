@@ -9,7 +9,22 @@
       <div class="col-12 col-lg-10">
         <h2 class="room-title text-center mb-4"><%= @room.name %></h2>
         <div id="room-id" data-room-id="<%= @room.id %>"></div>
-        <div id="game-info" class="text-center mt-4"></div>
+        <div id="game-info" class="text-center mt-4">
+          <% if @game.status == "started" %>
+          <div class="card shadow-sm p-3">
+            <h4 class="mb-3">
+              Category: <%= @game.category %>
+            </h4>
+            <h3 class="fw-bold">
+              <% if current_user.id == @game.spy_id %>
+                <p class="text-danger"><strong>----</strong></p>
+              <% else %>
+                <%= @game.villagers_word %>
+              <% end %>
+            </h3>
+          </div>
+        <% end %>
+        </div>
         <div id="players">
           <%= render partial: "player_list", locals: { players_hash: @game.players_hash, game: @game } %>
         </div>

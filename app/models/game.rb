@@ -61,10 +61,10 @@ class Game < ApplicationRecord
 
   def spy_guess_word(selected_word)
     if selected_word == villagers_word
-      finish_game("spy_won")
+      finish_game("spy_won", selected_word)
     else
       players_hash.find { |_, v| v[0] == spy_id }&.last[1] = "killed"
-      finish_game("spy_lost")
+      finish_game("spy_lost", selected_word)
     end
   end
 
@@ -79,9 +79,10 @@ class Game < ApplicationRecord
     room.assign_new_game
   end
 
-  def finish_game(result)
+  def finish_game(result,selected_word)
     self.status = :finished
     self.result = result
+    @spy_selected_word = selected_word
     save
     broadcast_result
   end
@@ -154,7 +155,8 @@ class Game < ApplicationRecord
         show_result: true,
         modal_result_data: {
           villagers_word: villagers_word,
-          result: result
+          result: result,
+          selected_word: @spy_selected_word
         }
       }
     )

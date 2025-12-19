@@ -7,7 +7,6 @@ window.subscribeToRoom = roomId => consumer.subscriptions.create(
       if (data.players_html) $("#players").html(data.players_html);
       if (data.player_count !== undefined)
         $(`[data-room-count-id='${roomId}']`).text(`${data.player_count}/6`);
-
       data.show_start_button ? renderStartButton(data.button_data) : $("#button-container").empty();
       if (data.show_game_data) showGameModal(data.modal_game_data);
       if (data.show_words) showSpyModal(data.modal_words_data);
@@ -103,7 +102,7 @@ function showSpyModal({spy_id, words_list, game_id}) {
     // Handle word selection
     $(".spy-word-btn").on("click", function() {
       const selectedWord = $(this).data("word");
-      
+
       // Disable all buttons and show loading state
       $(".spy-word-btn").prop("disabled", true);
       $(this).removeClass("btn-outline-dark").addClass("btn-success");
@@ -142,8 +141,8 @@ function showSpyModal({spy_id, words_list, game_id}) {
   }
 }
 
-function showGameResult({ villagers_word, result }) {
-   const $roomElement = $("#room-id");
+function showGameResult({ villagers_word, result ,selected_word}) {
+  const $roomElement = $("#room-id");
   const roomId = $roomElement.data("room-id");
   if (window.location.pathname !== `/rooms/${roomId}`) return;
   const resultText = result === "spy_won" 
@@ -166,6 +165,8 @@ function showGameResult({ villagers_word, result }) {
             <div class="mb-3">
               <h5><strong>Villagers' Word:</strong></h5>
               <h2 class="text-primary">${villagers_word}</h2>
+              <h5><strong>Spy Selected Word:</strong></h5>
+              <h2 class="text-primary">${selected_word}</h2>
             </div>
           </div>
         </div>
