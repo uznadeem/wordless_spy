@@ -360,3 +360,8 @@ $transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   margin-left: 10px;
   display: inline-block;
 }
+.card {
+ display: flex;
+ justify-content: center;
+ align-items: center;
+}
