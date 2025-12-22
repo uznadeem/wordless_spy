@@ -1,20 +1,25 @@
 import consumer from "./consumer"
 
-window.subscribeToRoom = roomId => consumer.subscriptions.create(
-  { channel: "RoomChannel", room_id: roomId },
-  {
-    received(data) {
-      if (data.players_html) $("#players").html(data.players_html);
-      if (data.player_count !== undefined)
-        $(`[data-room-count-id='${roomId}']`).text(`${data.player_count}/6`);
-      data.show_start_button ? renderStartButton(data.button_data) : $("#button-container").empty();
-      if (data.show_game_data) showGameModal(data.modal_game_data);
-      if (data.show_words) showSpyModal(data.modal_words_data);
-      if (data.show_result) showGameResult(data.modal_result_data);
-      if (data.show_knife_button) showKnifeButton(data.knife_button_data)
+window.subscribeToRoom = roomId => {
+  window.roomSubscription = consumer.subscriptions.create(
+    { channel: "RoomChannel", room_id: roomId },
+    {
+      received(data) {
+        if (data.players_html) $("#players").html(data.players_html);
+        if (data.player_count !== undefined)
+          $(`[data-room-count-id='${roomId}']`).text(`${data.player_count}/6`);
+        data.show_start_button ? renderStartButton(data.button_data) : $("#button-container").empty();
+        if (data.show_game_data) showGameModal(data.modal_game_data);
+        if (data.show_words) showSpyModal(data.modal_words_data);
+        if (data.show_result) showGameResult(data.modal_result_data);
+        if (data.show_knife_button) showKnifeButton(data.knife_button_data);
+      }
     }
-  }
-);
+  );
+
+  return window.roomSubscription;
+};
+
 
 const getCurrentUserId = () => window.gameData?.currentUserId || null;
 
@@ -136,6 +141,7 @@ function showSpyModal({spy_id, words_list, game_id}) {
     setTimeout(() => { 
       $("#spyModal").fadeOut(300, function() { 
         $(this).remove(); 
+        window.roomSubscription.perform("spy_modal_timeout", { room_id: window.currentRoomId });
       }); 
     }, 30000);
   }
@@ -166,7 +172,7 @@ function showGameResult({ villagers_word, result ,selected_word}) {
               <h5><strong>Villagers' Word:</strong></h5>
               <h2 class="text-primary">${villagers_word}</h2>
               <h5><strong>Spy Selected Word:</strong></h5>
-              <h2 class="text-primary">${selected_word}</h2>
+              <h2 class="text-primary">${selected_word ? selected_word : '----'}</h2>
             </div>
           </div>
         </div>
@@ -217,7 +223,7 @@ function showKnifeButton({ players_hash, game }) {
           <span class="knife-icon">🔪</span>
         </button>
       `);
-      
+
       knifeButton.on('click', function() {
         const targetSeat = $(this).data('target-seat');
         const targetUser = $(this).data('user-id');

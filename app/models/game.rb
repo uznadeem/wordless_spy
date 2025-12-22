@@ -79,7 +79,7 @@ class Game < ApplicationRecord
     room.assign_new_game
   end
 
-  def finish_game(result,selected_word)
+  def finish_game(result,selected_word = nil)
     self.status = :finished
     self.result = result
     @spy_selected_word = selected_word
