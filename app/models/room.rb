@@ -3,9 +3,9 @@ class Room < ApplicationRecord
  
   validates :name, presence: true, uniqueness: true
 
-  after_create :assign_new_game
-
-  has_one :current_game, class_name: "Game"
+  after_create :assign_new_game                                         
+ 
+  has_one :current_game,  class_name: "Game", foreign_key: "id", primary_key: "current_game_id" 
 
   has_many :games
 

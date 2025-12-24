@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :rooms do
     post :leave, on: :member
+    post :timeout, on: :member
   end
 
   resources :games do
