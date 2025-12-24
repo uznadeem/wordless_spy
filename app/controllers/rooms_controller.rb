@@ -1,7 +1,7 @@
 class RoomsController < ApplicationController
   before_action :authenticate_user!, only: %i[ index show new edit create destroy ]
-  before_action :set_room, only: %i[ show edit update destroy leave ]
-  before_action :set_game, only: %i[ show leave ]
+  before_action :set_room, only: %i[ show edit update destroy leave timeout ]
+  before_action :set_game, only: %i[ show leave update timeout]
   before_action :verify_owner, only: %i[ edit update destroy ]
 
   def index
@@ -29,13 +29,25 @@ class RoomsController < ApplicationController
     end
   end
 
+  def timeout
+    @game.spy_guess_word("No word selected")
+  end
+
   def update
-    if @room.update!(room_params)
-      redirect_to @room, notice: "Room was successfully updated."
-    else
-      render :edit, status: :unprocessable_entity
+    if request.content_type == "application/json"
+      if params[:restart_game]
+        previous_game = @room.games.where.not(id: @room.current_game_id).order(id: :desc).limit(1).take
+        @game.restart_game(previous_game)
+      end
+     else
+       if @room.update(room_params)
+         redirect_to @room, notice: "Room was successfully updated."
+       else
+        render :edit, status: :unprocessable_entity
+      end
     end
   end
+
 
   def destroy
     @room.destroy!

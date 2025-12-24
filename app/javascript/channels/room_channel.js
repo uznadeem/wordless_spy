@@ -6,8 +6,7 @@ window.subscribeToRoom = roomId => {
     {
       received(data) {
         if (data.players_html) $("#players").html(data.players_html);
-        if (data.player_count !== undefined)
-          $(`[data-room-count-id='${roomId}']`).text(`${data.player_count}/6`);
+        if (data.player_count !== undefined) $(`[data-room-count-id='${roomId}']`).text(`${data.player_count}/6`);
         data.show_start_button ? renderStartButton(data.button_data) : $("#button-container").empty();
         if (data.show_game_data) showGameModal(data.modal_game_data);
         if (data.show_words) showSpyModal(data.modal_words_data);
@@ -35,12 +34,62 @@ function renderStartButton({ owner_id, game_id }) {
   `);
 }
 
+function showRestartModal() {
+  const modalHtml = `
+    <div id="game-result-modal" class="modal fade show"
+         style="display: block; background-color: rgba(0,0,0,0.5);"
+         tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">Restarting Game in</h5>
+          </div>
+          <div class="modal-body text-center">
+            <h1 id="restart-countdown">5 sec</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $("body").append(modalHtml);
+  
+  const $roomElement = $("#room-id");
+  const roomId = $roomElement.data("room-id");
+
+  let timeLeft = 5;
+
+  const interval = setInterval(() => {
+    timeLeft--;
+    $("#restart-countdown").text(timeLeft + " sec");
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      $("#game-result-modal").remove();
+      $("#game-info").hide().empty();
+      fetch(`/rooms/${roomId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json", 
+          "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+        },
+        body: JSON.stringify({ restart_game: true })
+      });
+    }
+  }, 1000);
+}
+
 function showGameModal({ spy_id, villagers_word, category }) {
   const isSpy = getCurrentUserId() && spy_id && getCurrentUserId() == spy_id;
   const wordToShow = isSpy ? "---" : villagers_word;
   const $roomElement = $("#room-id");
   const roomId = $roomElement.data("room-id");
+  
   if (window.location.pathname !== `/rooms/${roomId}`) return;
+  
+  $("#game-start-modal").remove();
+  
   const modalHtml = `
     <div id="game-start-modal" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
@@ -61,16 +110,21 @@ function showGameModal({ spy_id, villagers_word, category }) {
     </div>
   `;
   
-  $("#game-start-modal").remove();
   $("body").append(modalHtml);
-  setTimeout(() => { $("#game-start-modal").fadeOut(300, function() { $(this).remove(); }); }, 5000);
-
-  $("#game-info").html(`
+  
+  $("#game-info").show().html(`
     <div class="card shadow-sm p-3">
       <h4 class="mb-3">Category: ${category}</h4>
       <h3 class="fw-bold">${wordToShow}</h3>
+      ${isSpy ? '<p class="text-danger mt-2"><strong>You are the SPY!</strong></p>' : ''}
     </div>
   `);
+  
+  setTimeout(() => { 
+    $("#game-start-modal").fadeOut(300, function() { 
+      $(this).remove(); 
+    }); 
+  }, 5000);
 }
 
 function showSpyModal({spy_id, words_list, game_id}) {
@@ -136,13 +190,22 @@ function showSpyModal({spy_id, words_list, game_id}) {
         }
       });
     });
-    
+    const $roomElement = $("#room-id");
+    const roomId = $roomElement.data("room-id");
     // Auto-hide after 30 seconds (increased time for selection)
     setTimeout(() => { 
       $("#spyModal").fadeOut(300, function() { 
         $(this).remove(); 
-        window.roomSubscription.perform("spy_modal_timeout", { room_id: window.currentRoomId });
-      }); 
+       // window.roomSubscription.perform("spy_modal_timeout", { room_id: window.currentRoomId });
+        fetch(`/rooms/${roomId}/timeout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+          },
+          body: JSON.stringify({ restart_game: true })
+        });
+       }); 
     }, 30000);
   }
 }
@@ -185,6 +248,7 @@ function showGameResult({ villagers_word, result ,selected_word}) {
 
   setTimeout(() => {
     $("#game-result-modal").fadeOut(300, function() { $(this).remove(); });
+      showRestartModal()
   }, 5000);
 }
 

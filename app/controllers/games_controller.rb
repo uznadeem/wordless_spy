@@ -5,17 +5,17 @@ class GamesController < ApplicationController
     @game.initialize_new_game
   end
 
-def update
-  if params[:knife_action] == "knife_target"
-    target_seat = params[:target_seat]
-    @game.kill_player(target_seat)
-  elsif params[:spy_word_guess].present?
-    selected_word = params[:spy_word_guess]
-    @game.spy_guess_word(selected_word)
-  end
+  def update
+    if params[:knife_action] == "knife_target"
+      target_seat = params[:target_seat]
+      @game.kill_player(target_seat)
+    elsif params[:spy_word_guess].present?
+      selected_word = params[:spy_word_guess]
+      @game.spy_guess_word(selected_word)
+    end
 
-  head :ok
-end
+    head :ok
+  end
 
   private
 

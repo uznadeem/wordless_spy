@@ -15,6 +15,14 @@ class Game < ApplicationRecord
   enum :status, { room_assigned: 0, started: 1, finished: 2 }
   enum :result, { spy_won: 0, spy_lost: 1 }
 
+  def restart_game(previous_game) 
+    previous_game.players_hash.each do |slot, value|
+      players_hash[slot][0] = value[0]  
+    end    
+    save
+    broadcast_players_update
+  end
+
   def join_game(player)
     return true if players_hash.values.any? { |id, _| id == player }
   
@@ -50,12 +58,13 @@ class Game < ApplicationRecord
       broadcast_words_to_spy
     else
       players_hash[slot][1] = "killed"
-
+      
       if players_hash.values.count { |h| h[1] == "alive" } == 2
         finish_game("spy_won")
+        return
       end
-      save
-      broadcast_players_update
+        save
+        broadcast_players_update
     end
   end
 
@@ -79,7 +88,7 @@ class Game < ApplicationRecord
     room.assign_new_game
   end
 
-  def finish_game(result,selected_word = nil)
+  def finish_game(result, selected_word = nil)
     self.status = :finished
     self.result = result
     @spy_selected_word = selected_word
@@ -89,7 +98,6 @@ class Game < ApplicationRecord
 
   def broadcast_players_update
     player_count = players_hash.values.map { |h| h[0] }.compact.size
-
     ActionCable.server.broadcast(
       "room_#{room_id}_channel",
       {
