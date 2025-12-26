@@ -47,10 +47,12 @@ class Game < ApplicationRecord
 
     category = data.keys.first
     word_list = data[category]
+    @delay = true
 
     update!(status: :started, category: category, words_list: word_list, villagers_word: word_list.sample, spy_id:  players_hash.values.map { |h| h[0] }.compact.sample)
 
     broadcast_game_start_modal
+    broadcast_shuffle_hint_player_turn
   end
 
   def kill_player(slot)
@@ -58,13 +60,14 @@ class Game < ApplicationRecord
       broadcast_words_to_spy
     else
       players_hash[slot][1] = "killed"
-      
+      @delay = false
       if players_hash.values.count { |h| h[0] && h[1] == "alive" } == 2
         finish_game("spy_won")
         return
       end
         save
         broadcast_players_update
+        broadcast_shuffle_hint_player_turn
     end
   end
 
@@ -138,6 +141,17 @@ class Game < ApplicationRecord
           category: category,
           villagers_word: villagers_word
         }
+      }
+    )
+  end
+
+  def broadcast_shuffle_hint_player_turn
+      h = players_hash.values.select { |user_id, status| status != "killed" }.map{ |user_id, status| user_id }.compact.shuffle
+      ActionCable.server.broadcast(
+      "room_#{room_id}_channel",
+      {
+        shuffled_player_hash: h,
+        delay: @delay
       }
     )
   end
