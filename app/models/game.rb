@@ -48,7 +48,7 @@ class Game < ApplicationRecord
     category = data.keys.first
     word_list = data[category]
 
-    update!(status: :started, category: category, words_list: word_list, villagers_word: word_list.sample, spy_id: players_hash.values.map { |h| h[0] }.sample)
+    update!(status: :started, category: category, words_list: word_list, villagers_word: word_list.sample, spy_id:  players_hash.values.map { |h| h[0] }.compact.sample)
 
     broadcast_game_start_modal
   end
@@ -59,7 +59,7 @@ class Game < ApplicationRecord
     else
       players_hash[slot][1] = "killed"
       
-      if players_hash.values.count { |h| h[1] == "alive" } == 2
+      if players_hash.values.count { |h| h[0] && h[1] == "alive" } == 2
         finish_game("spy_won")
         return
       end
@@ -119,7 +119,7 @@ class Game < ApplicationRecord
     ActionCable.server.broadcast(
       "room_#{room_id}_channel",
       {
-        show_start_button: !players_hash.values.map { |h| h[0] }.any?(nil) && status != "started",
+        show_start_button: players_hash.values.map { |h| h[0] }.compact.size >= 3 && status != "started",
         button_data: {
           game_id: id,
           owner_id: players_hash["1"][0]
