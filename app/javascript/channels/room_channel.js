@@ -9,6 +9,7 @@ window.subscribeToRoom = roomId => {
         if (data.player_count !== undefined) $(`[data-room-count-id='${roomId}']`).text(`${data.player_count}/6`);
         data.show_start_button ? renderStartButton(data.button_data) : $("#button-container").empty();
         if (data.show_game_data) showGameModal(data.modal_game_data);
+        if (data.shuffled_player_hash) turnFunction(data)
         if (data.show_words) showSpyModal(data.modal_words_data);
         if (data.show_result) showGameResult(data.modal_result_data);
         if (data.show_knife_button) showKnifeButton(data.knife_button_data);
@@ -79,7 +80,6 @@ function showRestartModal() {
     }
   }, 1000);
 }
-
 function showGameModal({ spy_id, villagers_word, category }) {
   const isSpy = getCurrentUserId() && spy_id && getCurrentUserId() == spy_id;
   const wordToShow = isSpy ? "---" : villagers_word;
@@ -119,12 +119,50 @@ function showGameModal({ spy_id, villagers_word, category }) {
       ${isSpy ? '<p class="text-danger mt-2"><strong>You are the SPY!</strong></p>' : ''}
     </div>
   `);
-  
+
   setTimeout(() => { 
     $("#game-start-modal").fadeOut(300, function() { 
       $(this).remove(); 
     }); 
   }, 5000);
+}
+
+function turnFunction({shuffled_player_hash, delay}){
+  console.log("shuffled_player_hash: ", shuffled_player_hash, "delay:", delay);
+
+  function highlightPlayer(index) {
+    if (index >= shuffled_player_hash.length) return; // Stop when done
+
+    const user_id = shuffled_player_hash[index];
+    const playerDiv = document.querySelector(`.player-slot[data-user-id='${user_id}']`);
+    const originalText = $(`.player-slot[data-user-id='${user_id}'] .position-label`).text();
+
+    if (playerDiv) {
+      const originalBg = playerDiv.style.backgroundColor;
+
+      // determine delay before gold
+      let delayBeforeGold = 0;
+      if (index === 0 && delay == true) delayBeforeGold = 5000; // 5s only if first and delayNot is false
+
+      // change to gold after delayBeforeGold
+      setTimeout(() => {
+        playerDiv.style.backgroundColor = "gold";
+        $(`.player-slot[data-user-id='${user_id}'] .position-label`).text("Your Turn To Speak");
+        // keep gold for 30s, then revert and move to next player
+        setTimeout(() => {
+          playerDiv.style.backgroundColor = originalBg;
+        $(`.player-slot[data-user-id='${user_id}'] .position-label`).text(originalText);
+          highlightPlayer(index + 1); // next player
+        }, 3000); // gold duration
+      }, delayBeforeGold);
+    } else {
+      console.warn("No div found for user_id:", user_id);
+      highlightPlayer(index + 1); // Skip missing player
+    }
+  }
+
+  // Start with the first player
+  highlightPlayer(0);
 }
 
 function showSpyModal({spy_id, words_list, game_id}) {

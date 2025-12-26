@@ -9,7 +9,7 @@
           <% is_alive = player_status == "alive" %>
           <% is_killed = player_status == "killed" %>
           
-          <div class="player-slot <%= 'killed-player' if is_killed %>" data-position="<%= position %>">
+          <div class="player-slot <%= 'killed-player' if is_killed %>" data-position="<%= position %>" data-user-id="<%= user_id %>">
             <div class="player-info">
               <div class="status-circle <%= user ? (is_alive ? 'occupied alive' : (is_killed ? 'killed' : 'occupied')) : 'empty' %>"></div>
               <div class="player-details">
