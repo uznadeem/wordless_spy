@@ -12,21 +12,21 @@
           <div class="player-slot <%= 'killed-player' if is_killed %>" data-position="<%= position %>" data-user-id="<%= user_id %>">
             <div class="player-info">
               <div class="status-circle <%= user ? (is_alive ? 'occupied alive' : (is_killed ? 'killed' : 'occupied')) : 'empty' %>"></div>
-              <div class="player-details">
-                <span class="player-name <%= 'killed-text' if is_killed %>">
-                  <% if user %>
-                    <%= user.email %>
-                    <% if is_killed %>
-                      <span class="killed-indicator">💀 ELIMINATED</span>
-                    <% elsif is_alive %>
-                      <span class="alive-indicator">✓ ALIVE</span>
+                <div class="player-details">
+                  <span class="player-name <%= 'killed-text' if is_killed %>">
+                    <% if user %>
+                      <%= user.email %>
+                      <% if is_killed %>
+                        <span class="killed-indicator">💀 ELIMINATED</span>
+                      <% elsif is_alive %>
+                        <span class="alive-indicator">✓ ALIVE</span>
+                      <% end %>
+                    <% else %>
+                      Waiting for player...
                     <% end %>
-                  <% else %>
-                    Waiting for player...
-                  <% end %>
-                </span>
-                <small class="position-label">Player <%= position %></small>
-              </div>
+                  </span>
+                  <small class="position-label">Player <%= position %></small>
+                </div>
             </div>
           </div>
         <% end %>

@@ -1,11 +1,17 @@
 Rails.application.routes.draw do
   resources :rooms do
+   # patch :restart_game, on: :member
     post :leave, on: :member
-    post :timeout, on: :member
+    patch :timeout, on: :member
   end
 
   resources :games do
     post :start, on: :member
+    patch :vote_modal, on: :member
+  end
+
+  resources :rounds do
+    patch :vote_out,on: :member
   end
 
   devise_for :users

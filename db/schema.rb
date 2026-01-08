@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_15_103111) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_30_115011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_103111) do
     t.datetime "updated_at", null: false
     t.string "category"
     t.bigint "spy_id"
+    t.integer "current_round_id"
     t.index ["room_id"], name: "index_games_on_room_id"
     t.index ["spy_id"], name: "index_games_on_spy_id"
   end
@@ -40,6 +41,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_103111) do
     t.index ["deleted_at"], name: "index_rooms_on_deleted_at"
     t.index ["name"], name: "index_rooms_on_name", unique: true
     t.index ["user_id"], name: "index_rooms_on_user_id"
+  end
+
+  create_table "rounds", force: :cascade do |t|
+    t.integer "round_number", default: 1
+    t.bigint "game_id", null: false
+    t.jsonb "votes", default: {"1" => nil, "2" => nil, "3" => nil, "4" => nil, "5" => nil, "6" => nil}
+    t.integer "status", default: 0, null: false
+    t.bigint "eliminated_player_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["eliminated_player_id"], name: "index_rounds_on_eliminated_player_id"
+    t.index ["game_id"], name: "index_rounds_on_game_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -58,4 +71,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_103111) do
   add_foreign_key "games", "users", column: "spy_id"
   add_foreign_key "rooms", "games", column: "current_game_id"
   add_foreign_key "rooms", "users"
+  add_foreign_key "rounds", "games"
+  add_foreign_key "rounds", "users", column: "eliminated_player_id"
 end
