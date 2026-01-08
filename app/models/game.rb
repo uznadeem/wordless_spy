@@ -6,14 +6,22 @@ class Game < ApplicationRecord
 
   validate :status_transition_is_valid, if: :will_save_change_to_status?
 
+  after_save :assign_new_round, if: :started?
   after_save :start_new_game, if: :finished?
 
   has_one :spy, class_name: "User"
-  
+  has_one :current_round, class_name: "Round", foreign_key: "id", primary_key: "current_round_id"
+
+  has_many :rounds
+
   belongs_to :room
 
   enum :status, { room_assigned: 0, started: 1, finished: 2 }
   enum :result, { spy_won: 0, spy_lost: 1 }
+
+  def assign_new_round
+    update_columns(current_round_id: rounds.create!.id)
+  end 
 
   def restart_game(previous_game) 
     previous_game.players_hash.each do |slot, value|
@@ -25,12 +33,21 @@ class Game < ApplicationRecord
 
   def join_game(player)
     return true if players_hash.values.any? { |id, _| id == player }
-  
+    if status == "started"
+      return errors.add(:base, "Game has started. You cannot join the game !.") && false  
+    end
     slot = players_hash.key([ nil, "alive" ])
     return errors.add(:base, "The room is full. You cannot join.") && false unless slot
 
     players_hash[slot] = [ player, "alive" ]
-    save && broadcast_players_update
+    if save
+      broadcast_players_update
+      broadcast_start_button
+      true  
+    else
+      false
+    end
+
   end
 
   def leave_game(player)
@@ -42,8 +59,8 @@ class Game < ApplicationRecord
   end
 
   def initialize_new_game
-    chat_service = OpenAiWordService.new
-    data = chat_service.fetch_words
+     chat_service = OpenAiWordService.new
+     data = chat_service.fetch_words
 
     category = data.keys.first
     word_list = data[category]
@@ -56,16 +73,20 @@ class Game < ApplicationRecord
   end
 
   def kill_player(slot)
+    return unless slot && players_hash[slot]
     if players_hash[slot][0] == spy_id
       broadcast_words_to_spy
     else
       players_hash[slot][1] = "killed"
+      @player_key = slot
+      @player_email = User.find(players_hash[slot][0]).email
       @delay = false
       if players_hash.values.count { |h| h[0] && h[1] == "alive" } == 2
         finish_game("spy_won")
         return
       end
         save
+        broadcast_player_eliminated_modal
         broadcast_players_update
         broadcast_shuffle_hint_player_turn
     end
@@ -80,6 +101,9 @@ class Game < ApplicationRecord
     end
   end
 
+  def get_shuffle_hint_player_turn
+    broadcast_shuffle_hint_player_turn
+  end
   private
 
   def status_transition_is_valid
@@ -95,8 +119,25 @@ class Game < ApplicationRecord
     self.status = :finished
     self.result = result
     @spy_selected_word = selected_word
-    save
     broadcast_result
+    save
+  end
+
+   
+  def vote_display_modal
+    current_round.vote_display_modal
+  end
+
+  def broadcast_player_eliminated_modal
+       ActionCable.server.broadcast(
+      "room_#{room_id}_channel",
+      {
+        eliminated_modal:true,
+        player_key: @player_key,
+        player_email: @player_email,
+        room_id: room_id
+      }
+    )
   end
 
   def broadcast_players_update
@@ -111,10 +152,10 @@ class Game < ApplicationRecord
             game: self
           }
         ),
-        player_count: player_count
+        player_count: player_count,
+        roomId:room_id
       }
     )
-    broadcast_knife_button
     broadcast_start_button
   end
 
@@ -122,7 +163,7 @@ class Game < ApplicationRecord
     ActionCable.server.broadcast(
       "room_#{room_id}_channel",
       {
-        show_start_button: players_hash.values.map { |h| h[0] }.compact.size >= 3 && status != "started",
+        show_start_button: players_hash.values.map { |h| h[0] }.compact.size >= 3 && status == "room_assigned",
         button_data: {
           game_id: id,
           owner_id: players_hash["1"][0]
@@ -150,7 +191,9 @@ class Game < ApplicationRecord
       ActionCable.server.broadcast(
       "room_#{room_id}_channel",
       {
+        game_id: id,
         shuffled_player_hash: h,
+        owner_id: players_hash["1"][0],
         delay: @delay
       }
     )
@@ -175,6 +218,7 @@ class Game < ApplicationRecord
       "room_#{room_id}_channel",
       {
         show_result: true,
+        owner_id: players_hash["1"][0],
         modal_result_data: {
           villagers_word: villagers_word,
           result: result,
@@ -184,16 +228,4 @@ class Game < ApplicationRecord
     )
   end
 
-  def broadcast_knife_button
-    ActionCable.server.broadcast(
-      "room_#{room_id}_channel",
-      {
-        show_knife_button: true,
-        knife_button_data: {
-          players_hash: players_hash,
-          game: { id: self.id }
-        }
-      }
-    )
-  end
 end

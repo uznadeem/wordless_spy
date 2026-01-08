@@ -1,5 +1,6 @@
 class GamesController < ApplicationController
-  before_action :set_game, only: %i[ start update ]
+  before_action :set_game, only: %i[ start update vote_modal]
+  before_action :set_round, only: %i[ vote_modal vote_modal]
 
   def start
     @game.initialize_new_game
@@ -17,9 +18,23 @@ class GamesController < ApplicationController
     head :ok
   end
 
+  def vote_modal
+    if @round.present?
+      @round.vote_display_modal
+      head :ok
+    else
+      render json: { error: "No active round" }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_game
     @game = Game.find_by(id: params[:id])
   end
+
+  def set_round
+    @round = @game.current_round
+  end
+
 end

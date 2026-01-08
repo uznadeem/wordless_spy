@@ -1,7 +1,7 @@
 class RoomsController < ApplicationController
   before_action :authenticate_user!, only: %i[ index show new edit create destroy ]
   before_action :set_room, only: %i[ show edit update destroy leave timeout ]
-  before_action :set_game, only: %i[ show leave update timeout]
+  before_action :set_game, only: %i[ show leave update timeout ]
   before_action :verify_owner, only: %i[ edit update destroy ]
 
   def index
@@ -47,7 +47,6 @@ class RoomsController < ApplicationController
       end
     end
   end
-
 
   def destroy
     @room.destroy!
